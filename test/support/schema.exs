@@ -5,13 +5,13 @@ defmodule TestWhatwasit.User do
   schema "users" do
     field :name, :string
     field :email, :string
-    timestamps
+    timestamps()
   end
 
   def changeset(model, params \\ %{}) do
     model
     |> cast(params, ~w(email name))
-    |>validate_required(~w(email name)a)
+    |> validate_required(~w(email name)a)
   end
 end
 
@@ -22,13 +22,13 @@ defmodule TestWhatwasit.Account do
   schema "accounts" do
     field :full_name, :string
     field :email, :string
-    timestamps
+    timestamps()
   end
 
   def changeset(model, params \\ %{}) do
     model
     |> cast(params, ~w(email full_name))
-    |>validate_required(~w(email full_name)a)
+    |> validate_required(~w(email full_name)a)
   end
 end
 
@@ -39,7 +39,7 @@ defmodule TestWhatwasit.Post do
   schema "posts" do
     field :title, :string
     field :body, :string
-    timestamps
+    timestamps()
   end
 
   def changeset(model, params \\ %{}, opts \\ []) do

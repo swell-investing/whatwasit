@@ -14,7 +14,7 @@ defmodule Whatwasit.Whatwasit.Version do
     field :object, :map
     field :whodoneit_name, :string
     belongs_to :whodoneit, TestWhatwasit.User
-    timestamps
+    timestamps()
   end
 
   @doc """
@@ -121,8 +121,8 @@ defmodule TestWhatwasit.SchemaTest do
   alias Whatwasit.Whatwasit.Version
 
   setup do
-    user = insert_user
-    post = insert_post
+    user = insert_user()
+    post = insert_post()
     {:ok, post: post, user: user}
   end
 
@@ -176,7 +176,7 @@ defmodule TestWhatwasit.SchemaTest do
 
   test "versions", %{post: post1} do
     title1 = post1.title
-    post2 = insert_post
+    post2 = insert_post()
     title2 = post2.title
 
     post1 = Post.changeset(post1, %{title: "one"})

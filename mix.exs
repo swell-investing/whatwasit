@@ -11,8 +11,8 @@ defmodule Whatwasit.Mixfile do
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      docs: [extras: ["README.md"], main: "Whatwasit"],
-     deps: deps,
-     package: package,
+     deps: deps(),
+     package: package(),
      name: "Whatwasit",
      description: """
      Track changes to your Ecto models.

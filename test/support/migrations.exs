@@ -6,14 +6,14 @@ defmodule TestWhatwasit.Migrations do
       add :name, :string
       add :email, :string
 
-      timestamps
+      timestamps()
     end
 
     create table(:accounts) do
       add :full_name, :string
       add :email, :string
 
-      timestamps
+      timestamps()
     end
 
     create table(:versions) do
@@ -24,14 +24,14 @@ defmodule TestWhatwasit.Migrations do
       add :whodoneit_name, :string
       add :whodoneit_id, references(:users, on_delete: :nilify_all)
 
-      timestamps
+      timestamps()
     end
 
     create table(:posts) do
       add :title, :string
       add :body, :text
 
-      timestamps
+      timestamps()
     end
 
   end
