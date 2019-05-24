@@ -21,7 +21,7 @@ defmodule Whatwasit do
 
         def changeset(model, params \\ %{}) do
           model
-          |> cast(params, ~w(title body))
+          |> cast(params, ~w(title body)a)
           |> validate_required(~w(title body)a)
           |> prepare_version    # add this
         end
@@ -58,7 +58,7 @@ defmodule Whatwasit do
         # ...
         def changeset(model, params \\ %{}, opts \\ []) do
           model
-          |> cast(params, ~w(title body))
+          |> cast(params, ~w(title body)a)
           |> validate_required(~w(title body)a)
           |> prepare_version(opts)
         end
@@ -106,8 +106,8 @@ defmodule Whatwasit do
 
       %MyProject.Post{__meta__: #Ecto.Schema.Metadata<:loaded, "posts">,
        body: "The answer is 42", id: 9,
-       inserted_at: #Ecto.DateTime<2016-07-22 01:49:25>, title: "What's the Question",
-       updated_at: #Ecto.DateTime<2016-07-22 01:49:55>}
+       inserted_at: #DateTime<2016-07-22 01:49:25>, title: "What's the Question",
+       updated_at: #DateTime<2016-07-22 01:49:55>}
 
       iex(5)> MyProject.Whatwasit.Version.versions post
 

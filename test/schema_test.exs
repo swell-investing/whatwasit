@@ -23,7 +23,7 @@ defmodule Whatwasit.Whatwasit.Version do
   def changeset(model, params \\ %{}) do
     params = update_in params, [:object], &(remove_fields(&1))
     model
-    |> cast(params, ~w(item_type item_id object action whodoneit_id whodoneit_name))
+    |> cast(params, ~w(item_type item_id object action whodoneit_id whodoneit_name)a)
     |> validate_required(~w(item_type item_id object)a)
   end
 

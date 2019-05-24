@@ -10,7 +10,7 @@ defmodule TestWhatwasit.User do
 
   def changeset(model, params \\ %{}) do
     model
-    |> cast(params, ~w(email name))
+    |> cast(params, ~w(email name)a)
     |> validate_required(~w(email name)a)
   end
 end
@@ -27,7 +27,7 @@ defmodule TestWhatwasit.Account do
 
   def changeset(model, params \\ %{}) do
     model
-    |> cast(params, ~w(email full_name))
+    |> cast(params, ~w(email full_name)a)
     |> validate_required(~w(email full_name)a)
   end
 end
@@ -44,7 +44,7 @@ defmodule TestWhatwasit.Post do
 
   def changeset(model, params \\ %{}, opts \\ []) do
     model
-    |> cast(params, ~w(title body))
+    |> cast(params, ~w(title body)a)
     |> validate_required(~w(title body)a)
     |> Whatwasit.Whatwasit.Version.prepare_version(opts)
   end

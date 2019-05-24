@@ -23,16 +23,16 @@ defmodule Whatwasit.Mixfile do
     [applications: applications(Mix.env)]
   end
 
-  defp applications(:test), do: [:logger, :ecto, :postgrex]
-  defp applications(_), do: [:logger, :ecto]
+  defp applications(:test), do: [:logger, :ecto, :ecto_sql, :postgrex]
+  defp applications(_), do: [:logger, :ecto, :ecto_sql]
 
   defp elixirc_paths(:test), do: ["lib", "web", "test/support"]
   defp elixirc_paths(_),     do: ["lib", "web"]
 
   defp deps do
     [
-      {:ecto, "~> 2.0"},
-      {:phoenix, "~> 1.1"},
+      {:ecto_sql, "~> 3.0"},
+      {:jason, "~> 1.0"},
       {:postgrex, ">= 0.0.0", only: :test},
       {:ex_doc, "== 0.11.5", only: :dev},
       {:earmark, "== 0.2.1", only: :dev, override: true},

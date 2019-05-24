@@ -1,6 +1,6 @@
 defmodule Mix.Tasks.Whatwasit.Install do
   @moduledoc """
-  Setup the Whatwasit package for your Phoenix application.
+  Setup the Whatwasit package for your application.
 
   Adds a migration for the Version model used to trackage changes to
   the desired models.
@@ -85,21 +85,49 @@ defmodule Mix.Tasks.Whatwasit.Install do
     |> print_instructions
   end
 
-  defp gen_version_model(%{models: true, whodoneit_map: true, boilerplate: true, binding: binding} = config) do
+  defp gen_version_model(%{models: true, whodoneit_map: true, boilerplate: true, base: base} = config) do
     changeset_fields = "~w(item_type item_id object action whodoneit)a"
     schema_fields = "field :whodoneit, :map\n"
-    binding = binding ++ [
+    binding = [
+      base: base,
       schema_fields: schema_fields,
       changeset_fields: changeset_fields
     ]
-    Mix.Phoenix.copy_from paths(),
+    copy_from paths(),
       "priv/templates/whatwasit.install/models/whatwasit", "", binding, [
         {:eex, "version_map.ex", "web/models/whatwasit/version.ex"},
       ]
     config
   end
 
-  defp gen_version_model(%{models: true, boilerplate: true, binding: binding} = config) do
+  defp copy_from(apps, source_dir, target_dir, binding, mapping) when is_list(mapping) do
+    roots = Enum.map(apps, &to_app_source(&1, source_dir))
+
+    for {format, source_file_path, target_file_path} <- mapping do
+      source =
+        Enum.find_value(roots, fn root ->
+          source = Path.join(root, source_file_path)
+          if File.exists?(source), do: source
+        end) || raise "could not find #{source_file_path} in any of the sources"
+
+      target = Path.join(target_dir, target_file_path)
+
+      contents =
+        case format do
+          :text -> File.read!(source)
+          :eex  -> EEx.eval_file(source, binding)
+        end
+
+      Mix.Generator.create_file(target, contents)
+    end
+  end
+
+  defp to_app_source(path, source_dir) when is_binary(path),
+    do: Path.join(path, source_dir)
+  defp to_app_source(app, source_dir) when is_atom(app),
+    do: Application.app_dir(app, source_dir)
+
+  defp gen_version_model(%{models: true, boilerplate: true, base: base} = config) do
     name_field = "field :whodoneit_name, :string\n"
     changeset_fields = "item_type item_id object action"
     whodoneit_changeset_fields = " whodoneit_id whodoneit_name"
@@ -115,11 +143,12 @@ defmodule Mix.Tasks.Whatwasit.Install do
       true ->
         {"", ""}
     end
-    binding = binding ++ [
+    binding = [
+      base: base,
       schema_fields: schema_fields,
       changeset_fields: "~w(#{changeset_fields}#{add_changeset_fields})a"
     ]
-    Mix.Phoenix.copy_from paths(),
+    copy_from paths(),
       "priv/templates/whatwasit.install/models/whatwasit", "", binding, [
         {:eex, "version.ex", "web/models/whatwasit/version.ex"},
       ]
@@ -181,7 +210,7 @@ defmodule Mix.Tasks.Whatwasit.Install do
     path = case config[:migration_path] do
       path when is_binary(path) -> path
       _ ->
-        Path.relative_to(migrations_path(repo), Mix.Project.app_path)
+        Path.relative_to(Ecto.Migrator.migrations_path(repo), Mix.Project.app_path)
     end
     file = Path.join(path, "#{timestamp}_#{underscore(name)}.exs")
     fun.(repo, path, file, name)
@@ -221,7 +250,7 @@ defmodule Mix.Tasks.Whatwasit.Install do
 
         def changeset(model, params \\ %{}, opts \\ []) do
           model
-          |> cast(params, ~w(title body))
+          |> cast(params, ~w(title body)a)
           |> validate_required(~w(title body)a)
           |> prepare_version(opts)   # add this
         end
@@ -255,7 +284,7 @@ defmodule Mix.Tasks.Whatwasit.Install do
 
         def changeset(model, params \\ %{}) do
           model
-          |> cast(params, ~w(title body))
+          |> cast(params, ~w(title body)a)
           |> validate_required(~w(title body)a)
           |> prepare_version     # add this
         end
@@ -282,18 +311,9 @@ defmodule Mix.Tasks.Whatwasit.Install do
   # Config
 
   defp do_config(opts, bin_opts) do
-    binding = Mix.Project.config
-    |> Keyword.fetch!(:app)
-    |> Atom.to_string
-    |> Mix.Phoenix.inflect
-
-    # IO.puts "binding: #{inspect binding}"
-
-    base = opts[:module] || binding[:base]
+    base = opts[:module] || (Mix.Project.config() |> Keyword.fetch!(:app) |> to_string |> Macro.camelize())
     opts = Keyword.put(opts, :base, base)
     repo = (opts[:repo] || "#{base}.Repo")
-
-    binding = Keyword.put binding ,:base, base
 
     user_schema = parse_model(opts[:model], base, opts)
 
@@ -316,7 +336,6 @@ defmodule Mix.Tasks.Whatwasit.Install do
     |> Map.put(:base, base)
     |> Map.put(:user_schema, user_schema)
     |> Map.put(:repo, repo)
-    |> Map.put(:binding, binding)
     |> Map.put(:migration_path, opts[:migration_path])
     |> Map.put(:module, opts[:module])
     |> Map.put(:whodoneit, whodoneit)
@@ -333,8 +352,8 @@ defmodule Mix.Tasks.Whatwasit.Install do
     end
     opts_bin = Enum.uniq(opts_bin)
     opts_names = Enum.map opts, &(elem(&1, 0))
-    with  [] <- Enum.filter(opts_bin, &(not &1 in @switch_names)),
-          [] <- Enum.filter(opts_names, &(not &1 in @switch_names)) do
+    with  [] <- Enum.filter(opts_bin, &(&1 not in @switch_names)),
+          [] <- Enum.filter(opts_names, &(&1 not in @switch_names)) do
             {opts_bin, opts}
     else
       list -> raise_option_errors(list)

@@ -73,7 +73,7 @@ defmodule MyProject.Post do
 
   def changeset(model, params \\ %{}) do
     model
-    |> cast(params, ~w(title body))
+    |> cast(params, ~w(title body)a)
     |> validate_required(~w(title body)a)
     |> prepare_version    # add this
   end
@@ -113,7 +113,7 @@ iex(2)> MyProject.Whatwasit.Version.versions post
 
 In order to track deletes you need to pass a changeset to `Repo.delete` or `Repo.delete!`.
 
-Note that this is not the default way phoneix.gen.html created the delete action.
+Note that this is not the default way phoenix.gen.html created the delete action.
 
 ```elixir
 defmodule MyProject.PostController do
@@ -150,7 +150,7 @@ defmodule MyProject.Post do
   # ...
   def changeset(model, params \\ %{}, opts \\ []) do
     model
-    |> cast(params, ~w(title body))
+    |> cast(params, ~w(title body)a)
     |> validate_required(~w(title body)a)
     |> prepare_version(opts)
   end
