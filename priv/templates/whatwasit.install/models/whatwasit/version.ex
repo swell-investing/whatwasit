@@ -8,9 +8,6 @@ defmodule <%= base %>.Whatwasit.Version do
   import Ecto.Changeset
   require Ecto.Query
 
-  @base Mix.Project.get |> Module.split |> Enum.reverse |> Enum.at(1)
-  @version_module Module.concat([@base, Whatwasit, Version])
-
   schema "versions" do
     field :item_type, :string
     field :item_id, :integer
@@ -99,7 +96,7 @@ defmodule <%= base %>.Whatwasit.Version do
     full_version = Keyword.get(opts, :full_version, false)
     id = schema.id
     type = Whatwasit.Utils.item_type schema
-    Ecto.Query.where(@version_module, [a], a.item_id == ^id and a.item_type == ^type)
+    Ecto.Query.where(Version, [a], a.item_id == ^id and a.item_type == ^type)
     |> Ecto.Query.order_by(desc: :id)
     |> repo.all
     |> Enum.map(fn item ->
@@ -117,13 +114,12 @@ defmodule <%= base %>.Whatwasit.Version do
 
   @doc false
   def version_changeset(struct, whodoneit_id, name, action) do
-    version_module = @version_module
     model = case struct do
       %{data: data} -> data
       model -> model
     end
     type = item_type model
-    version_module.changeset(version_module.__struct__,
+    changeset(%Version{},
       %{
         item_type: type ,
         item_id: model.id,

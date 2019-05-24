@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.Whatwasit.Install do
+  use Mix.Task
+
   @moduledoc """
   Setup the Whatwasit package for your application.
 
@@ -56,7 +58,6 @@ defmodule Mix.Tasks.Whatwasit.Install do
   import Mix.Ecto
   import Whatwasit.Mix.Utils
 
-  @default_options ~w()
   # the options that default to true, and can be disabled with --no-option
   @default_booleans  ~w(config migrations boilerplate models)
 
@@ -93,39 +94,9 @@ defmodule Mix.Tasks.Whatwasit.Install do
       schema_fields: schema_fields,
       changeset_fields: changeset_fields
     ]
-    copy_from paths(),
-      "priv/templates/whatwasit.install/models/whatwasit", "", binding, [
-        {:eex, "version_map.ex", "web/models/whatwasit/version.ex"},
-      ]
+    install_template "version_map.ex", binding, "web/models/whatwasit/version.ex"
     config
   end
-
-  defp copy_from(apps, source_dir, target_dir, binding, mapping) when is_list(mapping) do
-    roots = Enum.map(apps, &to_app_source(&1, source_dir))
-
-    for {format, source_file_path, target_file_path} <- mapping do
-      source =
-        Enum.find_value(roots, fn root ->
-          source = Path.join(root, source_file_path)
-          if File.exists?(source), do: source
-        end) || raise "could not find #{source_file_path} in any of the sources"
-
-      target = Path.join(target_dir, target_file_path)
-
-      contents =
-        case format do
-          :text -> File.read!(source)
-          :eex  -> EEx.eval_file(source, binding)
-        end
-
-      Mix.Generator.create_file(target, contents)
-    end
-  end
-
-  defp to_app_source(path, source_dir) when is_binary(path),
-    do: Path.join(path, source_dir)
-  defp to_app_source(app, source_dir) when is_atom(app),
-    do: Application.app_dir(app, source_dir)
 
   defp gen_version_model(%{models: true, boilerplate: true, base: base} = config) do
     name_field = "field :whodoneit_name, :string\n"
@@ -148,10 +119,7 @@ defmodule Mix.Tasks.Whatwasit.Install do
       schema_fields: schema_fields,
       changeset_fields: "~w(#{changeset_fields}#{add_changeset_fields})a"
     ]
-    copy_from paths(),
-      "priv/templates/whatwasit.install/models/whatwasit", "", binding, [
-        {:eex, "version.ex", "web/models/whatwasit/version.ex"},
-      ]
+    install_template "version.ex", binding, "web/models/whatwasit/version.ex"
     config
   end
   defp gen_version_model(config) do
@@ -215,6 +183,18 @@ defmodule Mix.Tasks.Whatwasit.Install do
     file = Path.join(path, "#{timestamp}_#{underscore(name)}.exs")
     fun.(repo, path, file, name)
     config
+  end
+
+  defp install_template(source_file, binding, target_file_path) do
+    source = Path.join(
+      Application.app_dir(
+        :whatwasit,
+        "priv/templates/whatwasit.install/models/whatwasit"
+      ),
+      source_file
+    )
+    contents = EEx.eval_file(source, binding)
+    Mix.Generator.create_file(target_file_path, contents)
   end
 
   defp print_instructions(%{whodoneit_id: type} = config) when type != nil do
@@ -311,7 +291,9 @@ defmodule Mix.Tasks.Whatwasit.Install do
   # Config
 
   defp do_config(opts, bin_opts) do
-    base = opts[:module] || (Mix.Project.config() |> Keyword.fetch!(:app) |> to_string |> Macro.camelize())
+    base = opts[:module] || (
+      Mix.Project.get |> Module.split |> Enum.reverse |> Enum.at(1)
+    )
     opts = Keyword.put(opts, :base, base)
     repo = (opts[:repo] || "#{base}.Repo")
 
@@ -398,9 +380,5 @@ defmodule Mix.Tasks.Whatwasit.Install do
     else
       module <> "." <>  model
     end
-  end
-
-  defp paths do
-    [".", :whatwasit]
   end
 end
